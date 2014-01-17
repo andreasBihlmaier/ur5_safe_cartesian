@@ -75,9 +75,9 @@ UR5SafeCartesian::setJointCallback(const sensor_msgs::JointState::ConstPtr& join
 }
 
 int
-rowmajoridx(int row, int col)
+rowmajoridx(int row, int col, int numcols)
 {
-  return row * 4 + col;
+  return row * numcols + col;
 }
 
 void
@@ -86,7 +86,7 @@ tprint(const double* T)
   printf("T:\n");
   for (unsigned row = 0; row < 4; row++) {
     for (unsigned col = 0; col < 4; col++) {
-      printf("%2.3lf ", T[rowmajoridx(row,col)]);
+      printf("%2.3lf ", T[rowmajoridx(row,col,4)]);
     }
     printf("\n");
   }
@@ -94,13 +94,13 @@ tprint(const double* T)
 }
 
 void
-jsolprint(const double* joint_solutions, unsigned joint_solution_count)
+jsolprint(const double* joint_solutions, unsigned joint_solutions_count)
 {
   printf("joint_solutions:\n");
-  for (unsigned solutionIdx = 0; solutionIdx < joint_solution_count; solutionIdx++) {
+  for (unsigned solutionIdx = 0; solutionIdx < joint_solutions_count; solutionIdx++) {
     printf("%d: ", solutionIdx);
     for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
-      printf("%2.3lf ", joint_solutions[rowmajoridx(jointIdx, solutionIdx)]);
+      printf("%2.3lf ", joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)]);
     }
     printf("\n");
   }
@@ -117,26 +117,78 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
 
   double T[4*4];
   for (unsigned col = 0; col < 3; col++) {
-    T[rowmajoridx(3,col)] = 0;
+    T[rowmajoridx(3,col,4)] = 0;
   }
-  T[rowmajoridx(3,3)] = 1;
+  T[rowmajoridx(3,3,4)] = 1;
   tf::Matrix3x3 rotationMatrix = tfpose.getBasis();
   for (unsigned row = 0; row < 3; row++) {
     for (unsigned col = 0; col < 3; col++) {
-       T[rowmajoridx(row,col)] = rotationMatrix[row][col];
+       T[rowmajoridx(row,col,4)] = rotationMatrix[row][col];
     }
   }
   tf::Vector3 translationVector = tfpose.getOrigin();
   for (unsigned row = 0; row < 3; row++) {
-    T[rowmajoridx(row, 3)] = translationVector[row];
+    T[rowmajoridx(row,3,4)] = translationVector[row];
   }
-  //tprint(T);
+  tprint(T);
 
   double joint_solutions[8*6];
-  unsigned joint_solution_count = ur_kinematics::inverse(T, joint_solutions, m_lastJointState.position[5]);
-  jsolprint(joint_solutions, joint_solution_count);
+  unsigned joint_solutions_count = ur_kinematics::inverse(T, joint_solutions, m_lastJointState.position[5]);
+  printf("raw solutions:\n");
+  jsolprint(joint_solutions, joint_solutions_count);
+  if (joint_solutions_count == 0) {
+    m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_NO_KINEMATICS_SOLUTION";
+    m_stateTopicPub.publish(m_currentState);
+    return;
+  }
 
-  //TODO publishToHardware();
+  // use solution closest to current pos (in joint space)
+  unsigned minDistSolutionIdx = 0;
+  double minDistSolution = 10e6;
+  for (unsigned solutionIdx = 0; solutionIdx < joint_solutions_count; solutionIdx++) {
+    // ur_kinematics::inverse returns angles in [0,2*PI) since all axis are +-2*PI, we want to use value of interval we are in
+    printf("joint_optimal_interval: ");
+    for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
+      double distpos = abs(m_lastJointState.position[jointIdx] - joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)]); 
+      double distneg = abs(m_lastJointState.position[jointIdx] - (joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)] - 2*M_PI)); 
+      double ival;
+      if (distneg < distpos) {
+        ival = -2 * M_PI;
+      } else {
+        ival = 0;
+      }
+      joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)] += ival;
+      printf("%2.3lf ", ival);
+    }
+    printf("\n");
+
+    double dist = 0;
+    for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
+      double d = joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)] - m_lastJointState.position[jointIdx];
+      while (d > M_PI) {
+        d -= 2*M_PI;
+      }
+      while (d < -M_PI) {
+        d += 2*M_PI;
+      }
+      dist += d * d;
+    }
+    printf("Solution %d dist=%lf\n", solutionIdx, dist);
+    if (dist < minDistSolution) {
+      minDistSolution = dist;
+      minDistSolutionIdx = solutionIdx;
+    }
+  }
+  printf("optimal interval solutions:\n");
+  jsolprint(joint_solutions, joint_solutions_count);
+  printf("Using solution %d\n", minDistSolutionIdx);
+
+  m_targetCartesianPose = *poseMsg;
+  for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
+    m_targetJointState.position[jointIdx] = joint_solutions[rowmajoridx(minDistSolutionIdx,jointIdx,UR5_JOINTS)];
+  }
+
+  publishToHardware();
 }
 
 void
@@ -154,12 +206,12 @@ UR5SafeCartesian::directGetJointCallback(const sensor_msgs::JointState::ConstPtr
   tf::Matrix3x3 rotationMatrix;
   for (unsigned row = 0; row < 3; row++) {
     for (unsigned col = 0; col < 3; col++) {
-       rotationMatrix[row][col] = T[rowmajoridx(row,col)];
+       rotationMatrix[row][col] = T[rowmajoridx(row,col,4)];
     }
   }
   tf::Vector3 translationVector;
   for (unsigned row = 0; row < 3; row++) {
-    translationVector[row] = T[rowmajoridx(row, 3)];
+    translationVector[row] = T[rowmajoridx(row,3,4)];
   }
   cartesianPose.setBasis(rotationMatrix);
   cartesianPose.setOrigin(translationVector);
