@@ -13,8 +13,9 @@
 
 // forward declarations
 
+#define UR5_JOINTS 6
 
-class LwrSafeCartesian
+class UR5SafeCartesian
 {
   public:
     // enums
@@ -22,12 +23,14 @@ class LwrSafeCartesian
     // typedefs
 
     // const static member variables
+    static const std::string jointNames[UR5_JOINTS];
+    static const double jointLimits[UR5_JOINTS];
  
     // static utility functions
 
 
     // constructors
-    LwrSafeCartesian(const std::string& p_robotName, const std::string& p_setJointTopic, const std::string& p_getJointTopic, const std::string& p_setCartesianTopic, const std::string& p_getCartesianTopic, const std::string& p_stateTopic, const std::string& p_directSetJointTopic, const std::string& p_directGetJointTopic, const std::string& p_directStateTopic);
+    UR5SafeCartesian(const std::string& p_robotName, const std::string& p_setJointTopic, const std::string& p_getJointTopic, const std::string& p_setCartesianTopic, const std::string& p_getCartesianTopic, const std::string& p_stateTopic, const std::string& p_directSetJointTopic, const std::string& p_directGetJointTopic, const std::string& p_directStateTopic);
 
     // overwritten methods
 

@@ -5,7 +5,6 @@ project(ur5_safe_cartesian)
 ## if COMPONENTS list like find_package(catkin REQUIRED COMPONENTS xyz)
 ## is used, also find other catkin packages
 find_package(catkin REQUIRED COMPONENTS
-  general_purpose_interpolator
   roscpp
   ur_kinematics
 )
@@ -110,14 +109,24 @@ add_executable(ur5_safe_cartesian
   src/UR5SafeCartesian.cpp
   src/main.cpp
 )
+set_target_properties(ur5_safe_cartesian PROPERTIES COMPILE_DEFINITIONS "UR5_PARAMS")
 
 ## Add cmake target dependencies of the executable/library
 ## as an example, message headers may need to be generated before nodes
 # add_dependencies(ur5_safe_cartesian_node ur5_safe_cartesian_generate_messages_cpp)
 
 ## Specify libraries to link a library or executable target against
+# ur_kinematics adds BOTH libraries (ur5 and ur10) to catkin_LIBRARIES, fix by removing one of them
+#MESSAGE("catkin_LIBRARIES=${catkin_LIBRARIES}")
+FOREACH(item ${catkin_LIBRARIES})
+  STRING(REGEX MATCH "ur10_kin" item_matched ${item})
+  IF(NOT item_matched)
+    LIST(APPEND FILTERED_catkin_LIBRARIES ${item})
+  ENDIF(NOT item_matched)
+ENDFOREACH(item ${catkin_LIBRARIES})
+#MESSAGE("FILTERED_catkin_LIBRARIES=${FILTERED_catkin_LIBRARIES}")
 target_link_libraries(ur5_safe_cartesian
-  ${catkin_LIBRARIES}
+  ${FILTERED_catkin_LIBRARIES}
 )
 
 #############
