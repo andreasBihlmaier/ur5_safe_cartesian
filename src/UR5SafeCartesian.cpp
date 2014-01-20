@@ -143,12 +143,18 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
   }
 
   // use solution closest to current pos (in joint space)
-  unsigned minDistSolutionIdx = 0;
+  int minDistSolutionIdx = -1;
   double minDistSolution = 10e6;
   for (unsigned solutionIdx = 0; solutionIdx < joint_solutions_count; solutionIdx++) {
+    bool validSolution = true;
     // ur_kinematics::inverse returns angles in [0,2*PI) since all axis are +-2*PI, we want to use value of interval we are in
     printf("joint_optimal_interval: ");
     for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
+      if (isnan(joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)])) {
+        printf("NaN!");
+        validSolution = false;
+        break;
+      }
       double distpos = abs(m_lastJointState.position[jointIdx] - joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)]); 
       double distneg = abs(m_lastJointState.position[jointIdx] - (joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)] - 2*M_PI)); 
       double ival;
@@ -161,6 +167,9 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
       printf("%2.3lf ", ival);
     }
     printf("\n");
+    if (!validSolution) {
+      continue;
+    }
 
     double dist = 0;
     for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
@@ -178,6 +187,11 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
       minDistSolution = dist;
       minDistSolutionIdx = solutionIdx;
     }
+  }
+  if (minDistSolutionIdx == -1) {
+    m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_NO_KINEMATICS_SOLUTION";
+    m_stateTopicPub.publish(m_currentState);
+    return;
   }
   printf("optimal interval solutions:\n");
   jsolprint(joint_solutions, joint_solutions_count);
