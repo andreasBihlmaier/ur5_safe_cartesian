@@ -2,7 +2,7 @@
 <package>
   <name>ur5_safe_cartesian</name>
   <version>0.0.0</version>
-  <description>The ur5_safe_cartesian package</description>
+  <description>Translate geometry_msgs/Pose messages (cartesian pose) to sensor_msgs/JointState messages (joint positions) for the Universal Robots UR5 with reachability and static collision checking</description>
   <maintainer email="andreas.bihlmaier@gmx.de">Andreas Bihlmaier</maintainer>
   <license>MIT</license>
 
