@@ -7,15 +7,15 @@ main(int argc, char** argv)
   ros::init(argc, argv, "ur5_safe_cartesian");
 
   std::string robotName = "ur5";
-  std::string setJointTopic = "ur5/set_joint";
-  std::string getJointTopic = "ur5/get_joint";
-  std::string setCartesianTopic = "ur5/set_cartesian";
-  std::string getCartesianTopic = "ur5/get_cartesian";
-  std::string stateTopic = "ur5/state";
+  std::string setJointTopic = "set_joint";
+  std::string getJointTopic = "get_joint";
+  std::string setCartesianTopic = "set_cartesian";
+  std::string getCartesianTopic = "get_cartesian";
+  std::string stateTopic = "state";
 
-  std::string directSetJointTopic = "ur5/direct/set_joint";
-  std::string directGetJointTopic = "ur5/direct/get_joint";
-  std::string directStateTopic = "ur5/direct/state";
+  std::string directSetJointTopic = "direct/set_joint";
+  std::string directGetJointTopic = "direct/get_joint";
+  std::string directStateTopic = "direct/state";
 
   const char optstring[] = "";
   struct option longopts[] = {
