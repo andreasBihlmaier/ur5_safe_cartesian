@@ -6,6 +6,7 @@
 #include <tf/transform_datatypes.h>
 
 // custom includes
+#include <safe_cartesian_moveit/CollisionCheckMoveIt.hpp>
 #include <ur_kinematics/ur_kin.h>
 
 
@@ -46,6 +47,8 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName, const std::st
   m_directGetJointTopicSub = m_node.subscribe<sensor_msgs::JointState>(m_directGetJointTopic, 1, &UR5SafeCartesian::directGetJointCallback, this);
   m_directSetJointTopicPub = m_node.advertise<sensor_msgs::JointState>(m_directSetJointTopic, 1);
   m_directStateTopicSub = m_node.subscribe<std_msgs::String>(m_directStateTopic, 1, &UR5SafeCartesian::directStateCallback, this);
+
+  m_collision_check = new CollisionCheckMoveIt();
 }
 /*------------------------------------------------------------------------}}}-*/
 
@@ -69,8 +72,12 @@ UR5SafeCartesian::setJointCallback(const sensor_msgs::JointState::ConstPtr& join
     }
   }
 
-  m_targetJointState = *jointsMsg;
+  if (m_collision_check->hasCollision(*jointsMsg)) {
+    std::cout << "------------------> COLLISION <---------------" << std::endl;
+    return;
+  }
 
+  m_targetJointState = *jointsMsg;
   publishToHardware();
 }
 
@@ -197,11 +204,17 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
   jsolprint(joint_solutions, joint_solutions_count);
   printf("Using solution %d\n", minDistSolutionIdx);
 
-  m_targetCartesianPose = *poseMsg;
+  sensor_msgs::JointState unsafeTargetJointState(m_targetJointState);
   for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
-    m_targetJointState.position[jointIdx] = joint_solutions[rowmajoridx(minDistSolutionIdx,jointIdx,UR5_JOINTS)];
+    unsafeTargetJointState.position[jointIdx] = joint_solutions[rowmajoridx(minDistSolutionIdx,jointIdx,UR5_JOINTS)];
+  }
+  if (m_collision_check->hasCollision(unsafeTargetJointState)) {
+    std::cout << "------------------> COLLISION <---------------" << std::endl;
+    return;
   }
 
+  m_targetCartesianPose = *poseMsg;
+  m_targetJointState = unsafeTargetJointState;
   publishToHardware();
 }
 

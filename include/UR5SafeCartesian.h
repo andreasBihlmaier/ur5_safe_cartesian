@@ -12,6 +12,7 @@
 // custom includes
 
 // forward declarations
+class CollisionCheckMoveIt;
 
 #define UR5_JOINTS 6
 
@@ -77,6 +78,8 @@ class UR5SafeCartesian
     geometry_msgs::Pose m_lastCartesianPose;
     geometry_msgs::Pose m_targetCartesianPose;
     std_msgs::String m_currentState;
+
+    CollisionCheckMoveIt* m_collision_check;
 };
 
 #endif // _LWR_SAFE_CARTESIAN_H_
