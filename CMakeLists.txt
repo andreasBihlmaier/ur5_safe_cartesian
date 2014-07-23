@@ -8,6 +8,7 @@ find_package(catkin REQUIRED COMPONENTS
   roscpp
   ur_kinematics
   safe_cartesian_moveit
+  general_purpose_interpolator
 )
 
 ## System dependencies are found with CMake's conventions

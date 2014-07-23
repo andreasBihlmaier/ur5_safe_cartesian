@@ -10,6 +10,7 @@
 #include <sensor_msgs/JointState.h>
 
 // custom includes
+#include <GeneralPurposeInterpolator.hpp>
 
 // forward declarations
 class CollisionCheckMoveIt;
@@ -26,6 +27,9 @@ class UR5SafeCartesian
     // const static member variables
     static const std::string jointNames[UR5_JOINTS];
     static const double jointLimits[UR5_JOINTS];
+    static const double path_collision_check_dist_threshold = 0.1;
+    static const double m_velMax = 0.8;
+    static const double m_accelMax = 10.0;
  
     // static utility functions
 
@@ -49,6 +53,7 @@ class UR5SafeCartesian
     void publishToHardware();
     void publishToApplication();
     void publishToTF();
+    bool pathHasCollision(const sensor_msgs::JointState& targetJointState);
 
     // variables
     std::string m_robotName;
@@ -80,6 +85,14 @@ class UR5SafeCartesian
     std_msgs::String m_currentState;
 
     CollisionCheckMoveIt* m_collision_check;
+    GeneralPurposeInterpolator m_gpi;
+    std::vector<double> m_gpiPosCurrentBuffer;
+    std::vector<double> m_gpiPosTargetBuffer;
+    std::vector<double> m_gpiPosMinBuffer;
+    std::vector<double> m_gpiPosMaxBuffer;
+    std::vector<double> m_gpiVelCurrentBuffer;
+    std::vector<double> m_gpiVelMaxBuffer;
+    std::vector<double> m_gpiAccelMaxBuffer;
 };
 
 #endif // _LWR_SAFE_CARTESIAN_H_
