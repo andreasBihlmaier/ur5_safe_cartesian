@@ -74,6 +74,8 @@ UR5SafeCartesian::setJointCallback(const sensor_msgs::JointState::ConstPtr& join
 
   if (m_collision_check->hasCollision(*jointsMsg)) {
     std::cout << "------------------> COLLISION <---------------" << std::endl;
+    m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_COLLISION";
+    m_stateTopicPub.publish(m_currentState);
     return;
   }
 
@@ -210,6 +212,8 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
   }
   if (m_collision_check->hasCollision(unsafeTargetJointState)) {
     std::cout << "------------------> COLLISION <---------------" << std::endl;
+    m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_COLLISION";
+    m_stateTopicPub.publish(m_currentState);
     return;
   }
 
