@@ -55,6 +55,7 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName)
   for (size_t jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
     m_jointNames[jointIdx] = /*m_robotName + "_" +*/ jointNames[jointIdx] /*+ "_joint"*/;
   }
+  m_targetJointState.name = m_jointNames;
 
   m_setJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("set_joint", 1, &UR5SafeCartesian::setJointCallback, this);
   m_getJointTopicPub = m_node.advertise<sensor_msgs::JointState>("get_joint", 1);
