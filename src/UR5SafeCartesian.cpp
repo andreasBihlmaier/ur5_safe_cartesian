@@ -287,6 +287,8 @@ UR5SafeCartesian::setCartesianCallback(const geometry_msgs::Pose::ConstPtr& pose
   for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
     unsafeTargetJointState.position[jointIdx] = joint_solutions[rowmajoridx(minDistSolutionIdx,jointIdx,UR5_JOINTS)];
   }
+  //std::cout << "unsafeTargetJointState: " << unsafeTargetJointState << std::endl;
+
   if (pathHasCollision(unsafeTargetJointState)) {
     std::cout << "------------------> COLLISION <---------------" << std::endl;
     m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_COLLISION";
