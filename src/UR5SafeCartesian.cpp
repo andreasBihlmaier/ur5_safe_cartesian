@@ -208,12 +208,12 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
   for (unsigned row = 0; row < 3; row++) {
     T[rowmajoridx(row,3,4)] = translationVector[row];
   }
-  tprint(T);
+  //tprint(T);
 
   double joint_solutions[8*6];
   unsigned joint_solutions_count = ur_kinematics::inverse(T, joint_solutions, m_lastJointState.position[5]);
-  printf("raw solutions:\n");
-  jsolprint(joint_solutions, joint_solutions_count);
+  //printf("raw solutions:\n");
+  //jsolprint(joint_solutions, joint_solutions_count);
   if (joint_solutions_count == 0) {
     m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_NO_KINEMATICS_SOLUTION";
     m_stateTopicPub.publish(m_currentState);
@@ -226,10 +226,10 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
   for (unsigned solutionIdx = 0; solutionIdx < joint_solutions_count; solutionIdx++) {
     bool validSolution = true;
     // ur_kinematics::inverse returns angles in [0,2*PI) since all axis are +-2*PI, we want to use value of interval we are in
-    printf("joint_optimal_interval: ");
+    //printf("joint_optimal_interval: ");
     for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
       if (isnan(joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)])) {
-        printf("NaN!");
+        //printf("NaN!");
         validSolution = false;
         break;
       }
@@ -242,9 +242,9 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
         ival = 0;
       }
       joint_solutions[rowmajoridx(solutionIdx,jointIdx,UR5_JOINTS)] += ival;
-      printf("%2.3lf ", ival);
+      //printf("%2.3lf ", ival);
     }
-    printf("\n");
+    //printf("\n");
     if (!validSolution) {
       continue;
     }
@@ -260,7 +260,7 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
       }
       dist += d * d;
     }
-    printf("Solution %d dist=%lf\n", solutionIdx, dist);
+    //printf("Solution %d dist=%lf\n", solutionIdx, dist);
     if (dist < minDistSolution) {
       minDistSolution = dist;
       minDistSolutionIdx = solutionIdx;
@@ -271,9 +271,9 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
     m_stateTopicPub.publish(m_currentState);
     return;
   }
-  printf("optimal interval solutions:\n");
-  jsolprint(joint_solutions, joint_solutions_count);
-  printf("Using solution %d\n", minDistSolutionIdx);
+  //printf("optimal interval solutions:\n");
+  //jsolprint(joint_solutions, joint_solutions_count);
+  //printf("Using solution %d\n", minDistSolutionIdx);
 
   sensor_msgs::JointState unsafeTargetJointState(m_targetJointState);
   for (unsigned jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
