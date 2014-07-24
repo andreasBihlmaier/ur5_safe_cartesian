@@ -47,7 +47,9 @@ class UR5SafeCartesian
   private:
     // methods
     void setJointCallback(const sensor_msgs::JointState::ConstPtr& jointsMsg);
+    void doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool collision_checking = true);
     void setCartesianCallback(const geometry_msgs::Pose::ConstPtr& poseMsg);
+    void setUnsafeCartesianCallback(const geometry_msgs::Pose::ConstPtr& poseMsg);
     void directGetJointCallback(const sensor_msgs::JointState::ConstPtr& jointsMsg);
     void directStateCallback(const std_msgs::String::ConstPtr& stateMsg);
     void publishToHardware();
@@ -64,6 +66,7 @@ class UR5SafeCartesian
     ros::Subscriber m_setJointTopicSub;
     ros::Publisher m_getJointTopicPub;
     ros::Subscriber m_setCartesianTopicSub;
+    ros::Subscriber m_setUnsafeCartesianTopicSub;
     ros::Publisher m_getCartesianTopicPub;
     ros::Publisher m_stateTopicPub;
     ros::Subscriber m_directGetJointTopicSub;
