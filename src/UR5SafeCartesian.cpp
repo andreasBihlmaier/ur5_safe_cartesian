@@ -32,16 +32,8 @@ joint_dist(const sensor_msgs::JointState& j1, const sensor_msgs::JointState& j2)
 const std::string UR5SafeCartesian::jointNames[UR5_JOINTS] = { "shoulder_pan_joint", "shoulder_lift_joint", "elbow_joint", "wrist_1_joint", "wrist_2_joint", "wrist_3_joint" };
 const double UR5SafeCartesian::jointLimits[UR5_JOINTS] = { 2*M_PI, 2*M_PI, 2*M_PI, 2*M_PI, 2*M_PI, 2*M_PI };
 
-UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName, const std::string& p_setJointTopic, const std::string& p_getJointTopic, const std::string& p_setCartesianTopic, const std::string& p_getCartesianTopic, const std::string& p_stateTopic, const std::string& p_directSetJointTopic, const std::string& p_directGetJointTopic, const std::string& p_directStateTopic)
+UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName)
   :m_robotName(p_robotName),
-   m_setJointTopic(p_setJointTopic),
-   m_getJointTopic(p_getJointTopic),
-   m_setCartesianTopic(p_setCartesianTopic),
-   m_getCartesianTopic(p_getCartesianTopic),
-   m_stateTopic(p_stateTopic),
-   m_directSetJointTopic(p_directSetJointTopic),
-   m_directGetJointTopic(p_directGetJointTopic),
-   m_directStateTopic(p_directStateTopic),
    m_gpi(UR5_JOINTS),
    m_gpiPosCurrentBuffer(UR5_JOINTS, 0),
    m_gpiPosTargetBuffer(UR5_JOINTS, 0),
@@ -64,15 +56,15 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName, const std::st
     m_jointNames[jointIdx] = /*m_robotName + "_" +*/ jointNames[jointIdx] /*+ "_joint"*/;
   }
 
-  m_setJointTopicSub = m_node.subscribe<sensor_msgs::JointState>(m_setJointTopic, 1, &UR5SafeCartesian::setJointCallback, this);
-  m_getJointTopicPub = m_node.advertise<sensor_msgs::JointState>(m_getJointTopic, 1);
-  m_setCartesianTopicSub = m_node.subscribe<geometry_msgs::Pose>(m_setCartesianTopic, 1, &UR5SafeCartesian::setCartesianCallback, this);
-  m_getCartesianTopicPub = m_node.advertise<geometry_msgs::Pose>(m_getCartesianTopic, 1);
-  m_stateTopicPub = m_node.advertise<std_msgs::String>(m_stateTopic, 1);
+  m_setJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("set_joint", 1, &UR5SafeCartesian::setJointCallback, this);
+  m_getJointTopicPub = m_node.advertise<sensor_msgs::JointState>("get_joint", 1);
+  m_setCartesianTopicSub = m_node.subscribe<geometry_msgs::Pose>("set_cartesian", 1, &UR5SafeCartesian::setCartesianCallback, this);
+  m_getCartesianTopicPub = m_node.advertise<geometry_msgs::Pose>("get_cartesian", 1);
+  m_stateTopicPub = m_node.advertise<std_msgs::String>("state", 1);
 
-  m_directGetJointTopicSub = m_node.subscribe<sensor_msgs::JointState>(m_directGetJointTopic, 1, &UR5SafeCartesian::directGetJointCallback, this);
-  m_directSetJointTopicPub = m_node.advertise<sensor_msgs::JointState>(m_directSetJointTopic, 1);
-  m_directStateTopicSub = m_node.subscribe<std_msgs::String>(m_directStateTopic, 1, &UR5SafeCartesian::directStateCallback, this);
+  m_directGetJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("direct/get_joint", 1, &UR5SafeCartesian::directGetJointCallback, this);
+  m_directSetJointTopicPub = m_node.advertise<sensor_msgs::JointState>("direct/set_joint", 1);
+  m_directStateTopicSub = m_node.subscribe<std_msgs::String>("direct/state", 1, &UR5SafeCartesian::directStateCallback, this);
 
   m_collision_check = new CollisionCheckMoveIt();
   // gpi

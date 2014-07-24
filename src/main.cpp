@@ -20,14 +20,6 @@ main(int argc, char** argv)
   const char optstring[] = "";
   struct option longopts[] = {
     { "robotname", required_argument, NULL, 0 },
-    { "setjointtopic", required_argument, NULL, 0 },
-    { "getjointtopic", required_argument, NULL, 0 },
-    { "setcartesiantopic", required_argument, NULL, 0 },
-    { "getcartesiantopic", required_argument, NULL, 0 },
-    { "statetopic", required_argument, NULL, 0 },
-    { "directsetjointtopic", required_argument, NULL, 0 },
-    { "directgetjointtopic", required_argument, NULL, 0 },
-    { "directstatetopic", required_argument, NULL, 0 },
   };
   int opt;
   int optindex;
@@ -36,28 +28,12 @@ main(int argc, char** argv)
     case 0:
       if (strcmp(longopts[optindex].name, "robotname") == 0) {
         robotName = optarg;
-      } else if (strcmp(longopts[optindex].name, "setjointtopic") == 0) {
-        setJointTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "getjointtopic") == 0) {
-        getJointTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "setcartesiantopic") == 0) {
-        setCartesianTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "getcartesiantopic") == 0) {
-        getCartesianTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "statetopic") == 0) {
-        stateTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "directsetjointtopic") == 0) {
-        directSetJointTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "directgetjointtopic") == 0) {
-        getJointTopic = optarg;
-      } else if (strcmp(longopts[optindex].name, "directstatetopic") == 0) {
-        directStateTopic = optarg;
       }
       break;
     }
   }
 
-  UR5SafeCartesian ur5SafeCartesian(robotName, setJointTopic, getJointTopic, setCartesianTopic, getCartesianTopic, stateTopic, directSetJointTopic, directGetJointTopic, directStateTopic);
+  UR5SafeCartesian ur5SafeCartesian(robotName);
 
   std::cout << "Spinning" << std::endl;
   ros::spin();

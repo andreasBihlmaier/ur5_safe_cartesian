@@ -35,7 +35,7 @@ class UR5SafeCartesian
 
 
     // constructors
-    UR5SafeCartesian(const std::string& p_robotName, const std::string& p_setJointTopic, const std::string& p_getJointTopic, const std::string& p_setCartesianTopic, const std::string& p_getCartesianTopic, const std::string& p_stateTopic, const std::string& p_directSetJointTopic, const std::string& p_directGetJointTopic, const std::string& p_directStateTopic);
+    UR5SafeCartesian(const std::string& p_robotName);
 
     // overwritten methods
 
@@ -57,15 +57,6 @@ class UR5SafeCartesian
 
     // variables
     std::string m_robotName;
-    std::string m_setJointTopic;
-    std::string m_getJointTopic;
-    std::string m_setCartesianTopic;
-    std::string m_getCartesianTopic;
-    std::string m_stateTopic;
-
-    std::string m_directSetJointTopic;
-    std::string m_directGetJointTopic;
-    std::string m_directStateTopic;
 
     std::vector<std::string> m_jointNames;
 
