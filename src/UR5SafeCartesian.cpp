@@ -70,7 +70,7 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName)
   m_gpi.setXMax(m_gpiPosMaxBuffer);
   m_gpi.setVMax(m_gpiVelMaxBuffer);
   m_gpi.setAMax(m_gpiAccelMaxBuffer);
-  m_gpi.setDt(0.1);
+  m_gpi.setDt(0.05);
   m_gpi.setMode(1);
 
   m_setJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("set_joint", 1, &UR5SafeCartesian::setJointCallback, this);
