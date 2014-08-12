@@ -130,32 +130,38 @@ UR5SafeCartesian::pathHasCollision(const sensor_msgs::JointState& targetJointSta
 }
 
 void
-UR5SafeCartesian::setJointCallback(const sensor_msgs::JointState::ConstPtr& jointsMsg)
+UR5SafeCartesian::setJointCallback(const sensor_msgs::JointState::ConstPtr& p_jointsMsg)
 {
-  //std::cout << "setJointCallback: jointsMsg=\n" << *jointsMsg << std::endl;
+  sensor_msgs::JointState jointsMsg(*p_jointsMsg);
+  //std::cout << "setJointCallback: jointsMsg=\n" << jointsMsg << std::endl;
 
-  if (jointsMsg->position.size() != UR5_JOINTS) {
+  if (jointsMsg.position.size() != UR5_JOINTS) {
     m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_WRONG_NUMBER_OF_JOINTS";
     m_stateTopicPub.publish(m_currentState);
     return;
   }
 
+  // use default names
+  if (jointsMsg.name.size() == 0) {
+    jointsMsg.name = m_jointNames;
+  }
+
   for (size_t jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
-    if (std::abs(jointsMsg->position[jointIdx]) > jointLimits[jointIdx]) {
+    if (std::abs(jointsMsg.position[jointIdx]) > jointLimits[jointIdx]) {
       m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_JOINT_LIMIT_EXCEEDED";
       m_stateTopicPub.publish(m_currentState);
       return;
     }
   }
 
-  if (pathHasCollision(*jointsMsg)) {
+  if (pathHasCollision(jointsMsg)) {
     std::cout << "------------------> COLLISION <---------------" << std::endl;
     m_currentState.data = "SAFE_UR5_ERROR|SAFE_UR5_COLLISION";
     m_stateTopicPub.publish(m_currentState);
     return;
   }
 
-  m_targetJointState = *jointsMsg;
+  m_targetJointState = jointsMsg;
   publishToHardware();
 }
 
