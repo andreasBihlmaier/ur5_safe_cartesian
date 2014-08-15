@@ -302,6 +302,8 @@ UR5SafeCartesian::doCartesian(const geometry_msgs::Pose::ConstPtr& poseMsg, bool
   m_targetCartesianPose = *poseMsg;
   m_targetJointState = unsafeTargetJointState;
   publishToHardware();
+  m_currentState.data = "UR5_OK";
+  m_stateTopicPub.publish(m_currentState);
 }
 
 
