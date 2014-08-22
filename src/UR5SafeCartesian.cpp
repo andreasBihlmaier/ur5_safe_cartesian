@@ -57,6 +57,11 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName)
   }
   m_targetJointState.name = m_jointNames;
 
+  // must be available in order for CollisionCheckMoveIt to initialize (if joint_topic_merger.py is used)
+  m_getJointTopicPub = m_node.advertise<sensor_msgs::JointState>("get_joint", 1);
+  m_getCartesianTopicPub = m_node.advertise<geometry_msgs::Pose>("get_cartesian", 1);
+  m_directGetJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("direct/get_joint", 1, &UR5SafeCartesian::directGetJointCallback, this);
+
   m_collision_check = new CollisionCheckMoveIt();
   // gpi
   for (size_t jointIdx = 0; jointIdx < UR5_JOINTS; jointIdx++) {
@@ -74,13 +79,10 @@ UR5SafeCartesian::UR5SafeCartesian(const std::string& p_robotName)
   m_gpi.setMode(1);
 
   m_setJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("set_joint", 1, &UR5SafeCartesian::setJointCallback, this);
-  m_getJointTopicPub = m_node.advertise<sensor_msgs::JointState>("get_joint", 1);
   m_setCartesianTopicSub = m_node.subscribe<geometry_msgs::Pose>("set_cartesian", 1, &UR5SafeCartesian::setCartesianCallback, this);
   m_setUnsafeCartesianTopicSub = m_node.subscribe<geometry_msgs::Pose>("unsafe/set_cartesian", 1, &UR5SafeCartesian::setUnsafeCartesianCallback, this);
-  m_getCartesianTopicPub = m_node.advertise<geometry_msgs::Pose>("get_cartesian", 1);
   m_stateTopicPub = m_node.advertise<std_msgs::String>("state", 1);
 
-  m_directGetJointTopicSub = m_node.subscribe<sensor_msgs::JointState>("direct/get_joint", 1, &UR5SafeCartesian::directGetJointCallback, this);
   m_directSetJointTopicPub = m_node.advertise<sensor_msgs::JointState>("direct/set_joint", 1);
   m_directStateTopicSub = m_node.subscribe<std_msgs::String>("direct/state", 1, &UR5SafeCartesian::directStateCallback, this);
 }
